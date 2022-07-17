@@ -1,10 +1,9 @@
-import e from "express";
 import { Sequelize } from "sequelize";
 import db from "../config/Database.js";
 
 const { DataTypes } = Sequelize;
 
-const Users = db.define('users',{
+const User = db.define('user',{
     name: {
         type: DataTypes.STRING
     },
@@ -20,6 +19,24 @@ const Users = db.define('users',{
 },
 {
     freezeTableName: true
-})
+});
 
-export default Users;
+const Role = db.define('role',{
+    role: {
+        type: DataTypes.STRING
+    }
+    
+},
+{
+    freezeTableName: true
+});
+
+
+User.hasMany(Role, { as: "roles" });
+Role.belongsTo(User, {
+    foreignKey: "userId",
+    as: "user",
+  });
+
+
+export {User , Role} ;

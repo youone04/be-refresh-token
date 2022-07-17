@@ -1,27 +1,48 @@
-GET http://localhost:5000/users
+GET http://localhost:8800/users
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsIm5hbWUiOiJZdWRpIEd1bmF3YW4iLCJlbWFpbCI6Inl1ZGlAeXVkaS5jb20iLCJpYXQiOjE2NTYxMjI0MjgsImV4cCI6MTY1NjEyMjQ0M30.8tj2Y4JmR0pgSH-ZHbSiUloKZ_BQESplzDhaR93uJis
 ###
-POST  http://localhost:5000/users
+POST  http://localhost:8800/users
 Content-Type: application/json
 
 {
-    "name": "Yudi Gunawan",
+    "name": "yudi",
     "email": "yudi@yudi.com",
     "password": "123",
     "confirmPassword": "123"
 }
 
 ###
-POST  http://localhost:5000/login
+POST  http://localhost:8800/login
 Content-Type: application/json
 
 {
-    "email": "yudi@yudi.com",
+    "email": "admin@admin.com",
     "password": "123"
 }
 
 ###
-GET  http://localhost:5000/token
+GET  http://localhost:8800/token
 
 ###
-DELETE http://localhost:5000/logout
+DELETE http://localhost:8800/logout
+
+###
+POST  http://localhost:8800/tutorial
+Content-Type: application/json
+
+{
+    "title": "test",
+    "description": "test"
+}
+
+###
+POST  http://localhost:8800/comment
+Content-Type: application/json
+
+{
+    "name": "test",
+    "text": "test"
+}
+
+###
+GET  http://localhost:8800/tutorial/1

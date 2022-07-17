@@ -1,10 +1,12 @@
-import Users from "../models/UserModels.js";
+import {User , Role} from "../models/UserModels.js";
 import bcrypt from "bcrypt";
 import Jwt from "jsonwebtoken";
+import { Tutorial ,Comment } from "../models/TutorialModels.js";
+// Post.find({ where: { ...}, include: [User]})
 
 export const getUsers = async (req, res) => {
   try {
-    const users = await Users.findAll({
+    const users = await User.findAll({
       attributes: ["id", "name", "email"],
     });
     res.json(users);
@@ -22,10 +24,15 @@ export const Register = async (req, res) => {
   try {
     const salt = await bcrypt.genSalt();
     const hashPassword = await bcrypt.hash(password.toString(), salt);
-    await Users.create({
+    const regist = await User.create({
       name: name,
       email: email,
       password: hashPassword,
+    });
+
+   await Role.create({
+    userId: regist.dataValues.id,
+    role: 'editor'
     });
 
     res.json({ msg: hashPassword });
@@ -36,18 +43,22 @@ export const Register = async (req, res) => {
 
 export const Login = async (req, res) => {
   try {
-    const user = await Users.findAll({
+    const user = await User.findAll({
       where: {
         email: req.body.email,
       },
-    });
+      include: ["roles"]
+    })
     const match = await bcrypt.compare(req.body.password, user[0].password);
     if (!match) return res.status(400).json({ msg: "Wrong password" });
     const userId = user[0].id;
     const name = user[0].name;
     const email = user[0].email;
+    const role = user[0].roles.map(obj => {
+      return obj.role
+    });
     const accessToken = Jwt.sign(
-      { userId, name, email },
+      { userId, name, email , role },
       process.env.ACCESS_TOKEN_SECRET,
       {
         expiresIn: "20s",
@@ -55,14 +66,14 @@ export const Login = async (req, res) => {
     );
 
     const refreshToken = Jwt.sign(
-      { userId, name, email },
+      { userId, name, email ,role },
       process.env.REFRESH_TOKEN_SECRET,
       {
         expiresIn: "1d",
       }
     );
 
-    await Users.update(
+    await User.update(
       { refresh_token: refreshToken },
       {
         where: {
@@ -75,8 +86,10 @@ export const Login = async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000,
       // secure: true
     });
-    res.json({ accessToken });
+    res.json({ userId, name, email ,accessToken , role});
+  //  res.json({ data: user});
   } catch (error) {
+    console.log(error)
     res.status(404).json({ msg: "Email tidak ditemukan" });
   }
 };
@@ -84,14 +97,14 @@ export const Login = async (req, res) => {
 export const LogOut = async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) return res.sendStatus(204);
-  const user = await Users.findAll({
+  const user = await User.findAll({
     where: {
       refresh_token: refreshToken,
     },
   });
   if (!user[0]) return res.sendStatus(404);
   const userId = user[0].id;
-  await Users.update(
+  await User.update(
     { refresh_token: null },
     {
       where: {
@@ -102,3 +115,47 @@ export const LogOut = async (req, res) => {
   res.clearCookie("refreshToken");
   return res.sendStatus(200);
 };
+
+export const CreateTutorial = async (req , res) => {
+  try{
+
+    await Tutorial.create({
+      title: req.body.title,
+      description: req.body.description,
+    })
+    
+    res.json({ msg: 'Sucess' });
+  }catch(error){
+    console.log(error)
+
+  }
+}
+
+export const CreateComment = async (req , res) => {
+  try{
+
+    await Comment.create({
+      name: req.body.name,
+      text: req.body.text,
+      tutorialId: 1,
+    })
+
+    res.json({ msg: 'Sucess' });
+  }catch(error){
+    console.log(error)
+
+  }
+}
+
+
+export const getTutorialById = async (req , res) => {
+  try{
+
+    const tut1Data = await Tutorial.findByPk(1, { include: ["comments"] })
+
+    res.json({ msg: 'Sucess', data: tut1Data });
+  }catch(error){
+    console.log(error)
+
+  }
+}
